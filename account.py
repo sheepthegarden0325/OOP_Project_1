@@ -1,71 +1,129 @@
 from datetime import datetime
 from transaction import Transaction
 from client import Client
+from bank import Bank
+from decimal import Decimal
 
 
 class Account:
     def __init__(self, client: Client, account_number: str):
         self.number = account_number
-        self.clinet = client
-        self.transaction_records = {  # this dictionary is for tracking transactions
+        self.client = client
+        self.transactions = {  # this dictionary is for tracking transactions
             # "transaction_id": transaction_instance
 
         }
-        self.current_balance = 0.0
+        self.current_balance = Decimal('0.0')
 
     def add_balance(self, added_amount):
         self.current_balance += added_amount
 
-    def remove_balace(self, removed_amount):
+    def remove_balance(self, removed_amount):
         self.current_balance -= removed_amount
 
-    def deposit(self, amount: float, description: str) -> bool:
-        transaction_id = f'{datetime.now()} ' + self.number
-        transaction = Transaction(
-            transaction_id, 'deposit', amount, description)
-        self.transaction_records[transaction_id] = transaction
-        self.add_balance(amount)
-        transaction.status_change_to_processed(self.current_balance)
-        return True
+    # Automatic transaction_id producing function
+    def create_transaction_id(self):
+        # transaction_id = date_time + ' ' + account_number: str
+        return f'{datetime.now()} ' + self.number
 
-    def withdraw(self, amount: float, description: str) -> bool:
-        transaction_id = f'{datetime.now()} ' + self.number
-        transaction = Transaction(
-            transaction_id, 'withdrawal', amount, description)
-        if self.current_balance >= amount:  # checking balance
-            self.remove_balace(amount)
-            transaction.status_change_to_processed(
-                self.current_balance)  # Pending -> Processed
-            return True
-        else:
-            transaction.status_change_to_cancelled(
-                self.current_balance)  # Pending -> Cancelled
-
-            return False
-
-    def transfer(self, transfer_to_this_account: str, amount: float, description: str) -> bool:
-        transaction_id = f'{datetime.now()} ' + self.number
+    def deposit(self, amount: Decimal, description: str, bank: Bank) -> bool:
+        # Transaction creation start
+        transaction_id = self.create_transaction_id()
         transaction = Transaction(transaction_id,
-                                  'withdrawal',
+                                  'Deposit',
                                   amount,
                                   description)
-        if self.current_balance >= amount:  # checking balance
-            self.remove_balace(amount)
-            self.transaction_records.append({"date_time": datetime.now(),
-                                             "transaction_type": "transfer",
-                                             "transfer_to_this_account": transfer_to_this_account,
-                                             "amount": amount})
-            print(f"Date & Time: {datetime.now()} Transaction succeeded, Transaction type: transfer, Remittee: {transfer_to_this_account}, Amount: ${amount}, Current balance: {self.current_balance}")
-            return True
-        else:
-            print("Transaction failed: not enough balance")
+        # Transaction creation end
+
+        # Auditing start
+        bank.transactions[transaction_id] = transaction
+        self.transactions[transaction_id] = transaction
+        # Auditing end
+
+        if amount <= Decimal('0.0'):  # Amount validation
+            transaction.status_change_to_cancelled(3)  # Pending -> Cancelled
             return False
 
-    def receive(self, received_from_this_account: str, received_amount: float) -> bool:
-        self.add_balance(received_amount)
-        self.transaction_records.append({"date_time": datetime.now(),
-                                         "transaction_type": "transfer",
-                                         "received_from_this_account": received_from_this_account,
-                                         "amount": received_amount})
-        print(f"Date & Time: {datetime.now()} Transaction succeeded, Transaction type: transfer, Remitter: {received_from_this_account}, Amount: ${received_amount}, Current balance: {self.current_balance}")
+        self.add_balance(amount)
+        transaction.status_change_to_processed()
+        # Pending -> Processed
+        transaction.print_transaction_result(self.current_balance)
         return True
+
+    def withdraw(self, amount: Decimal, description: str, bank: Bank) -> bool:
+        # Transaction cration start
+        transaction_id = self.create_transaction_id()
+        transaction = Transaction(transaction_id,
+                                  'Withdrawal',
+                                  amount,
+                                  description)
+        # Transaction creation end
+
+        # Auditing start
+        bank.transactions[transaction_id] = transaction
+        self.transactions[transaction_id] = transaction
+        # Auditing end
+
+        if amount <= Decimal('0.0'):  # Amount validation
+            transaction.status_change_to_cancelled(3)  # Pending -> Cancelled
+            return False
+
+        if self.current_balance >= amount:  # checking balance
+            self.remove_balance(amount)
+            transaction.status_change_to_processed()
+            # Pending -> Processed
+            transaction.print_transaction_result(self.current_balance)
+            return True
+
+        else:
+            transaction.status_change_to_cancelled(0)
+            # Pending -> Cancelled
+            return False
+
+    def transfer(self, remittee: str, amount: Decimal, description: str, bank: Bank) -> bool:
+        # Transaction creation start
+        transaction_id = self.create_transaction_id()
+        transaction = Transaction(transaction_id,
+                                  'Transfer',
+                                  amount,
+                                  description)
+        transaction.remitter_account = self
+        transaction.remittee_account = bank.accounts.get(remittee)
+        # Transaction creation end
+
+        # Auditing start
+        bank.transactions[transaction_id] = transaction
+        self.transactions[transaction_id] = transaction
+        # Auditing end
+
+        if amount <= Decimal('0.0'):  # Amount validation
+            transaction.status_change_to_cancelled(3)  # Pending -> Cancelled
+            return False
+
+        # Checking if matching receiver account does not exist.
+        if transaction.remittee_account is None:
+            transaction.status_change_to_cancelled(1)  # Pending -> Cancelled
+            return False
+        if self.current_balance >= amount:  # checking balance
+            receiver_balance = transaction.remittee_account.current_balance
+            transaction.remittee_account.receive(amount, transaction)
+            if transaction.remittee_account.current_balance != receiver_balance + amount:
+                # Reinstate remittee's balance
+                transaction.remittee_account.current_balance = receiver_balance
+                transaction.status_change_to_cancelled(2)
+                # Pending -> Cancelled
+                return False
+            self.remove_balance(amount)
+            transaction.status_change_to_processed()  # Pending -> Processed
+            transaction.print_transaction_result(self.current_balance, self)
+            transaction.print_transaction_result(transaction.remittee_account.current_balance,
+                                                 transaction.remittee_account)
+            # Pending -> Processed
+            return True
+        else:
+            transaction.status_change_to_cancelled(0)  # Panding -> Cancelled
+            return False
+
+    def receive(self, amount: Decimal, transaction: Transaction):
+        self.add_balance(amount)
+        self.transactions[transaction.id] = transaction
