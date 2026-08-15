@@ -55,10 +55,10 @@ class Transaction:
         elif self.type == 'Transfer':
             if viewer_account is self.remittee_account:  # Message for remittee
                 print(
-                    f"Date & Time: {datetime.now()} Transaction succeeded, Transaction type: Transfer, Remitter: {self.remitter_account.number}, Amount: + ${self.amount}, Current balance: {current_balance}")
+                    f"Date & Time: {datetime.now()}, Transaction succeeded, Transaction type: Transfer, Remitter: {self.remitter_account.number}, Remittee: {self.remittee_account.number}, Amount: + ${self.amount}, Current balance: {current_balance}")
             elif viewer_account is self.remitter_account:  # message for remitter
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction succeeded, Transaction type: Transfer, Remittee: {self.remittee_account.number}, Amount: - ${self.amount}, Current balance: {current_balance}")
+                    f"Date & Time: {datetime.now()}, Transaction succeeded, Transaction type: Transfer, Remitter: {self.remitter_account.number}, Remittee: {self.remittee_account.number}, Amount: - ${self.amount}, Current balance: {current_balance}")
 
     def update_transaction_description(self, description: str):
         self.description = description

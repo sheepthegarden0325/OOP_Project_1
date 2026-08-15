@@ -1,6 +1,3 @@
-from account import Account
-
-
 class Client:
     # Client has ID, name, contact_number, and a dictionary of accounts so that they can easily access to their bank account
     def __init__(self, id: int, name: str, contact_number: str, email: str):
@@ -18,13 +15,13 @@ class Client:
         print(self.accounts)
 
     # this method returns the exact account instance
-    def access_acccount(self, account_number: str) -> Account:
+    def access_acccount(self, account_number: str):
         return self.accounts[account_number]
 
-    def open_new_account(self, account_number):  # create a new account
+    '''def open_new_account(self, account_number):  # create a new account
         # I will need a line for checking whether the assigned account number is duplicated
         account = Account(self.id, account_number)
-        self.accounts[account_number] = account
+        self.accounts[account_number] = account'''
 
     # this take string values among name, contact_number, and email
     def contact_info_change(self, want_to_change_this: str, to_this: str):

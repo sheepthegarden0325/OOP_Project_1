@@ -1,19 +1,24 @@
 from datetime import datetime
 from transaction import Transaction
-from client import Client
-from bank import Bank
 from decimal import Decimal
 
 
 class Account:
-    def __init__(self, client: Client, account_number: str):
+    def __init__(self, client, account_number: str):
         self.number = account_number
         self.client = client
         self.transactions = {  # this dictionary is for tracking transactions
             # "transaction_id": transaction_instance
-
         }
         self.current_balance = Decimal('0.0')
+
+    def check_balance(self) -> Decimal:
+        return self.current_balance
+
+    def print_balance(self):
+        print(
+            f'Date & Time: {datetime.now()}, Account: {self.number}, Current balance: {self.current_balance}')
+        return
 
     def add_balance(self, added_amount):
         self.current_balance += added_amount
@@ -26,7 +31,7 @@ class Account:
         # transaction_id = date_time + ' ' + account_number: str
         return f'{datetime.now()} ' + self.number
 
-    def deposit(self, amount: Decimal, description: str, bank: Bank) -> bool:
+    def deposit(self, bank, amount: Decimal, description='') -> bool:
         # Transaction creation start
         transaction_id = self.create_transaction_id()
         transaction = Transaction(transaction_id,
@@ -50,7 +55,7 @@ class Account:
         transaction.print_transaction_result(self.current_balance)
         return True
 
-    def withdraw(self, amount: Decimal, description: str, bank: Bank) -> bool:
+    def withdraw(self, bank, amount: Decimal, description='') -> bool:
         # Transaction cration start
         transaction_id = self.create_transaction_id()
         transaction = Transaction(transaction_id,
@@ -80,7 +85,7 @@ class Account:
             # Pending -> Cancelled
             return False
 
-    def transfer(self, remittee: str, amount: Decimal, description: str, bank: Bank) -> bool:
+    def transfer(self, bank, remittee, amount: Decimal, description='') -> bool:
         # Transaction creation start
         transaction_id = self.create_transaction_id()
         transaction = Transaction(transaction_id,
@@ -88,7 +93,7 @@ class Account:
                                   amount,
                                   description)
         transaction.remitter_account = self
-        transaction.remittee_account = bank.accounts.get(remittee)
+        transaction.remittee_account = remittee
         # Transaction creation end
 
         # Auditing start
@@ -101,23 +106,23 @@ class Account:
             return False
 
         # Checking if matching receiver account does not exist.
-        if transaction.remittee_account is None:
+        if remittee is None:
             transaction.status_change_to_cancelled(1)  # Pending -> Cancelled
             return False
         if self.current_balance >= amount:  # checking balance
-            receiver_balance = transaction.remittee_account.current_balance
-            transaction.remittee_account.receive(amount, transaction)
-            if transaction.remittee_account.current_balance != receiver_balance + amount:
+            receiver_balance = remittee.current_balance
+            remittee.receive(amount, transaction)
+            if remittee.current_balance != receiver_balance + amount:
                 # Reinstate remittee's balance
-                transaction.remittee_account.current_balance = receiver_balance
+                remittee.current_balance = receiver_balance
                 transaction.status_change_to_cancelled(2)
                 # Pending -> Cancelled
                 return False
             self.remove_balance(amount)
             transaction.status_change_to_processed()  # Pending -> Processed
             transaction.print_transaction_result(self.current_balance, self)
-            transaction.print_transaction_result(transaction.remittee_account.current_balance,
-                                                 transaction.remittee_account)
+            transaction.print_transaction_result(remittee.current_balance,
+                                                 remittee)
             # Pending -> Processed
             return True
         else:
