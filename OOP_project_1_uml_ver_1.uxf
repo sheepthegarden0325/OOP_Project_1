@@ -1,0 +1,96 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>Relation</id><coordinates><x>530</x><y>170</y><w>190</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=0..1
+m2=0..*
+label</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>Relation</id><coordinates><x>1150</x><y>170</y><w>190</w><h>50</h></coordinates><panel_attributes>lt=-
+m1=0..n
+m2=0..1
+teaches to &gt;</panel_attributes><additional_attributes>10;20;170;20</additional_attributes></element><element><id>UMLClass</id><coordinates><x>540</x><y>320</y><w>420</w><h>220</h></coordinates><panel_attributes>Bank
+--
+_- clients: Map&lt;int, client: Client&gt; = {}_
+_- accounts: Map&lt;int, Account&gt; = {}_
+_- transactions: Map&lt;int: Transaction&gt; = {}_
+_- branches: Map&lt; int, client: Branch&gt; = {}_
+--
+_+ add_client(cls, client: Client)_
+_+ add_account(cls, account: Account)_
+_+ add_transaction(cls, transaction: Transaction)_
+_+ add_branch(cls, branch: Branch)_
+_+ access_account(cls, account_number: int): Account_
+_+ access_client(cls, client_id: int): Client_
+_+ access_transaction(cls, transaction_id: int): Transaction_
+_+ access_branch(cls, branch_number: int): Branch_</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>30</x><y>510</y><w>420</w><h>340</h></coordinates><panel_attributes>Transaction
+--
+_- next_id: int = 1_
+- date_time: datetime
+- type: str
+- amount: Decimal
+- description: str
+- remitter_account: Account
+- remittee_account: Account
+- status: str
+--
++ Transaction(type: str, amount: Decimal, description: str)
++ status_change_to_processed(): bool
++ status_change_to_cancelled(error_code: int): bool
++ print_transaction_result(current_balance: Decimal, viewer_account: Account | None)
++ get_id(): int
++ get_remittee(): Account | None
++ get_amount(): Decimal
++ get_type(): str
++ get_status(): str
++ set_description(description: str)
++ set_remitter_account(remitter: Account)
++ set_remittee_account(remittee: Account)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>30</x><y>30</y><w>380</w><h>310</h></coordinates><panel_attributes>Client
+--
+_- next_id: int = 1_
+- id: int
+- name: str | None
+- contact_number: str | None
+- email: str | None
+- preferred_contact_method: str | None
+- accounts: Map&lt;int, Account&gt; = {}
+--
++ Client(name: str, contact_number: str, email: str)
++ check_account()
++ access_account(account_number: int): Account
++ get_id(): int
+- add_account(account: Account)
++ add_account(account: Account)
+- remove_account(account: Account)
++ remove_account(account: Account)
++ set_name(name: str)
++ set_contact_number(contact_number: str)
++ set_email(email: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>80</x><y>910</y><w>370</w><h>220</h></coordinates><panel_attributes>Branch
+--
+_- next_number: int = 1_
+- number: int
+- name: str | None
+- suburb: str | None
+- phone_number: str | None
+- is_open: bool
+--
++ Branch(name: str, suburb: str, phone_number: str)
++ open()
++ close()
++ set_phone_number(new_number: str)
++ get_number(): int</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>520</x><y>650</y><w>470</w><h>320</h></coordinates><panel_attributes>Account
+--
+_- next_number: int = 1_
+- number: int
+- transactions: Map&lt;int, Transaction&gt; = {}
+- current_balance: Decimal = Decimal('0.0')
+--
++ Account(client: Client)
++ get_number(): int
++ get_balance(): Decimal
++ print_balance()
+- add_balance(added_amount: Decimal)
+- remove_balance(removed_amount: Decimal)
+- create_transaction(type: str, amount: Decimal, description: str): Transaction
++ deposit(amount: Decimal, description: str = ''): bool
++ withdraw(amount: Decimal, description: str = ''): bool
++ transfer(remittee: Account, amount: Decimal, description: str = ''): bool
+- receive(transaction: Transaction)
++ receive(transaction: Transaction)
+- remittee_transfer_rollback(rollback_balance: Decimal)
++ remittee_transfer_rollback(transaction: Transaction, rollback_balance: Decimal)</panel_attributes><additional_attributes></additional_attributes></element></diagram>

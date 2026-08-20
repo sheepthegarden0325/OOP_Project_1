@@ -3,11 +3,11 @@ from bank import Bank
 
 
 class Branch:
-    __number = 1
+    __next_number = 1
 
     def __init__(self, name: str, suburb: str, phone_number: str):
-        self.__number = Branch.__number
-        Branch.__number += 1
+        self.__number = Branch.__next_number
+        Branch.__next_number += 1
         if isinstance(name, str):
             self.__name = name
         else:

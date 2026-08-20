@@ -22,6 +22,13 @@ if isinstance(transaction, Transaction):
     if self is transaction.get_remittee():
         if transaction.get_type() == 'Transfer':
             if transaction.get_status == 'Pending':
+또 print 문도 너무 길 경우 pep8을 위반하기 때문에 이들도 
+print(
+    A, 
+    B, 
+    C, 
+    sep = ', '
+) 형태로 수정했다
 
 Account 와 Transaction 클래스의 관계는 Composition인가???
 그렇다

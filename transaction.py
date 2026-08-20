@@ -4,11 +4,11 @@ from bank import Bank
 
 
 class Transaction:
-    __id = 1
+    __next_id = 1
 
     def __init__(self, type, amount: Decimal, description):
-        self.__id = Transaction.__id
-        Transaction.__id += 1
+        self.__id = Transaction.__next_id
+        Transaction.__next_id += 1
         self.__date_time = datetime.now()
         self.__type = type
         self.__amount = amount
@@ -34,16 +34,28 @@ class Transaction:
             self.__date_time = datetime.now()  # Time updates
             if error_code == 0:  # error_code: 0 -> Not enough balance
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Not enough balance.")
+                    f"Date & Time: {datetime.now()}",
+                    f"Transaction status: {self.__status}",
+                    f"Not enough balance."
+                )
             elif error_code == 1:  # error_code: 1 -> No matching receiver account
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, No matching remittee account.")
+                    f"Date & Time: {datetime.now()}",
+                    f"Transaction status: {self.__status}",
+                    "No matching remittee account."
+                )
             elif error_code == 2:  # error_code: 2 -> System failed adding exact amount of money on receiver account
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Banking system calculation error.")
+                    f"Date & Time: {datetime.now()}",
+                    f"Transaction status: {self.__status}",
+                    "Banking system calculation error."
+                )
             elif error_code == 3:  # error_code: 3 -> Wrong amount input
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Amount cannot be 0 or negative.")
+                    f"Date & Time: {datetime.now()}",
+                    f"Transaction status: {self.__status}",
+                    "Amount cannot be 0 or negative."
+                )
             return True
 
         else:
@@ -52,17 +64,45 @@ class Transaction:
     def print_transaction_result(self, current_balance, viewer_account=None):
         if self.__type == 'Deposit':
             print(
-                f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Transaction type: Deposit, Amount: + ${self.__amount}, Current balance: {current_balance}")
+                f"Date & Time: {datetime.now()}",
+                f"Transaction status: {self.__status}",
+                f"Transaction type: Deposit",
+                f"Amount: + ${self.__amount}",
+                f"Current balance: {current_balance}",
+                sep=", "
+            )
         elif self.__type == 'Withdrawal':
             print(
-                f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Transaction type: Withdrawal, Amount: - ${self.__amount}, Current balance: {current_balance}")
+                f"Date & Time: {datetime.now()}",
+                f"Transaction status: {self.__status}",
+                "Transaction type: Withdrawal",
+                f"Amount: - ${self.__amount}",
+                f"Current balance: {current_balance}",
+                sep=", "
+            )
         elif self.__type == 'Transfer':
             if viewer_account is self.__remittee_account:  # Message for remittee
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Transaction type: Transfer, Remitter: {self.__remitter_account.get_number()}, Remittee: {self.__remittee_account.get_number()}, Amount: + ${self.__amount}, Current balance: {current_balance}")
+                    f'Date & Time: {datetime.now()}',
+                    f'Transaction status: {self.__status}',
+                    f'Transaction type: Transfer',
+                    f'Remitter: {self.__remitter_account.get_number()}',
+                    f'Remittee: {self.__remittee_account.get_number()}',
+                    f'Amount: + ${self.__amount}',
+                    f'Current balance: {current_balance}',
+                    sep=", "
+                )
             elif viewer_account is self.__remitter_account:  # message for remitter
                 print(
-                    f"Date & Time: {datetime.now()}, Transaction status: {self.__status}, Transaction type: Transfer, Remitter: {self.__remitter_account.get_number()}, Remittee: {self.__remittee_account.get_number()}, Amount: - ${self.__amount}, Current balance: {current_balance}")
+                    f"Date & Time: {datetime.now()}",
+                    f"Transaction status: {self.__status}",
+                    f"Transaction type: Transfer",
+                    f"Remitter: {self.__remitter_account.get_number()}",
+                    f"Remittee: {self.__remittee_account.get_number()}",
+                    f"Amount: - ${self.__amount}",
+                    f"Current balance: {current_balance}",
+                    sep=", "
+                )
 
     def get_id(self):
         return self.__id

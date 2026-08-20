@@ -3,12 +3,12 @@ from bank import Bank
 
 
 class Client:
-    __initial_id = 1
+    __next_id = 1
     # Client has ID, name, contact_number, and a dictionary of accounts so that they can easily access to their bank account
 
     def __init__(self, name: str, contact_number: str, email: str):
-        self.__id = Client.__initial_id
-        Client.__initial_id += 1
+        self.__id = Client.__next_id
+        Client.__next_id += 1
         if isinstance(name, str):
             self.__name = name
         else:
@@ -35,7 +35,7 @@ class Client:
         print(self.__accounts)
 
     # this method returns the exact account instance
-    def access_acccount(self, account_number: int):
+    def access_account(self, account_number: int):
         return self.__accounts[account_number]
 
     def get_id(self):

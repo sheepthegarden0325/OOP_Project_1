@@ -56,33 +56,33 @@ class Bank:  # This class exists for efficiently retrieving and accsessing accou
         self.__branches[branch_number] = branch
         return branch'''
     @classmethod
-    def add_client(self, client):
+    def add_client(cls, client):
         Bank.__clients[client.get_id()] = client
 
     @classmethod
-    def add_account(self, account):
+    def add_account(cls, account):
         Bank.__accounts[account.get_number()] = account
 
     @classmethod
-    def add_transaction(self, transaction):
+    def add_transaction(cls, transaction):
         Bank.__accounts[transaction.get_id()] = transaction
 
     @classmethod
-    def add_branch(self, branch):
+    def add_branch(cls, branch):
         Bank.__branches[branch.get_number()] = branch
 
     @classmethod
-    def access_account(self, account_number):
+    def access_account(cls, account_number):
         return Bank.__accounts.get(account_number)
 
     @classmethod
-    def access_client(self, client_id):
+    def access_client(cls, client_id):
         return Bank.__clients[client_id]
 
     @classmethod
-    def access_transaction(self, transaction_id):
+    def access_transaction(cls, transaction_id):
         return Bank.__transactions[transaction_id]
 
     @classmethod
-    def access_branch(self, branch_number):
+    def access_branch(cls, branch_number):
         return Bank.__branches[branch_number]

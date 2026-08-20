@@ -5,11 +5,11 @@ from bank import Bank
 
 
 class Account:
-    __account_number = 1
+    __next_number = 1
 
     def __init__(self, client):
-        self.__number = Account.__account_number
-        Account.__account_number += 1
+        self.__number = Account.__next_number
+        Account.__next_number += 1
         from client import Client
         if isinstance(client, Client):
             # when an account is created automatically add in the client's account dictionary
@@ -28,7 +28,11 @@ class Account:
 
     def print_balance(self):
         print(
-            f'Date & Time: {datetime.now()}, Account: {self.__number}, Current balance: {self.__current_balance}')
+            f'Date & Time: {datetime.now()}',
+            f'Account: {self.__number}',
+            f'Current balance: {self.__current_balance}',
+            sep=', '
+        )
         return
 
     def __add_balance(self, added_amount):
