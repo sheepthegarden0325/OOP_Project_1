@@ -1,38 +1,162 @@
-13/Aug/2026
+# Weekly Code Review
 
-오늘 받은 피드벡 
-일단 첫번째 variable 에 prefix 생략
-원래 어트리뷰트 만들 때 transaction_id 이런식으로 만들었는데 이미 Transaction class에 속한 어트리뷰트가 transaction에 관련된 것은 자명하기 때문에 그냥 id라고 해도 상관 없다.
+### 13 August 2026
 
-두번째 trasaction에서 sender와 receiver에 Account type value를 할당한다
-원래 코드에서는 이 둘을 str 타입으로 저장했는데 이것보다는 Account type이 이 두 계좌를 추적하여 실제 transfer and receive가 문제없이 완료되었는지 검사하기 쉽게 한다.
-따라서 transaction의 관련 어트리뷰트를 Account type을 저장하도록 수정했다
+**Review focus:** `Transaction` class design
 
+#### Removing repeated prefixes from attribute names
 
-20/Aug/2026
+- **Feedback:** I originally used attribute names such as `transaction_id`. However, because the attribute already belongs to the `Transaction` class, the `transaction_` prefix is unnecessary.
 
-오늘 받은 피드백
-Bank 클래스가 필요한가
-사실 실제라면 데이터베이스에서 각 인스턴스들을 관리할 것이기 때문에 굳이 필요하지는 않다 그러나 갖고 있는 것은 상관 없다.
+- **Code change:** I renamed `transaction_id` to `id` and used the class context to show that it belongs to a transaction.
 
-receive validation:
-if isinstance(transaction, Transaction) and self is transaction.get_remittee() and transaction.get_type() == 'Transfer' and transaction.get_status == 'Pending':
-를 validation으로 썻는데 아이디어는 좋으나 pep8을 위반하기 때문에 if문을 나눠서 작성했다
+```python
+# Before
+self.__transaction_id = transaction_id
+
+# After
+self.__id = Transaction.__next_id
+```
+
+- **Concept:** Meaningful names and code readability.
+
+- **Learning:** An attribute name does not need to repeat its class name when its meaning is already clear from the class.
+
+- **Improvement:** The attribute names became shorter and easier to read without losing meaning.
+
+- **Evidence:** [`transaction.py`](transaction.py), `Transaction.__init__()`  
+
+#### Storing Account objects in a Transaction
+
+- **Feedback:** The sender and receiver were originally stored as strings. Storing the actual `Account` objects would make it easier to track the accounts and check whether a transfer was completed correctly.
+
+- **Code change:** I changed the sender and receiver values to references to `Account` objects. I also renamed them `remitter` and `remittee`.
+
+```python
+self.__remitter_account = remitter
+self.__remittee_account = remittee
+```
+
+The `Account.transfer()` method now passes the two `Account` objects when creating a transfer.
+
+```python
+transaction = self.__create_transaction(
+    'Transfer',
+    amount,
+    description,
+    self,
+    remittee
+)
+```
+
+- **Learning:** Storing an object reference allows another object to use its methods and check its current state.
+
+- **Improvement:** The system can confirm the remittee, check the received balance, and print both account numbers without searching for the accounts again.
+
+- **Evidence:** [`transaction.py`](transaction.py), `Transaction.__init__()` and [`account.py`](account.py), `Account.transfer()`  
+  **Commit:** [View the relevant commit](https://github.com/sheepthegarden0325/OOP_Project_1/commit/5ccf9651cef2605d9240ccd62c47563eaafa524a#diff-764655f7f8ace14ae544dd4598c070c836acf70b4b4d57d7228c1705b84df55b)
+
+### 20 August 2026
+
+**Review focus:** Class responsibilities, validation, formatting, and object relationships
+
+#### Reviewing the purpose of the Bank class
+
+- **Feedback:** I asked whether the `Bank` class was necessary. In a real system, a database would normally store and manage these objects. Therefore, a central `Bank` registry was not required, although keeping it was still an acceptable design choice.
+
+- **Initial code change:** I first kept the `Bank` class but removed its imports of other domain classes. Created objects were passed to `Bank` from their constructors, so `Bank` no longer needed to import and validate every class.
+
+- **Later design change:** As the relationships between `Client`, `Account`, `Transaction`, and `Branch` became stronger, the `Bank` registries began to repeat information already stored by those objects. I therefore removed the `Bank` class from the final design.
+
+- **Concept:** Single Responsibility Principle, coupling, and class responsibility.
+
+- **Learning:** A class should have a clear responsibility that is not already handled by other objects.
+
+- **Improvement:** Removing the duplicated registry reduced coupling and made the relationships between the remaining classes clearer.
+
+- **Evidence:** [The earlier Bank implementation](https://github.com/sheepthegarden0325/OOP_Project_1/commit/8bf7129df252ccdd14033cf05b001d3720242cfd#diff-d8ea9e6c196df0143aa11a6ae1fde478d8cb0e67798d0da63e51a083c5441e26)  
+  **Bank removal:** [View the latest commit]()  
+  **Class diagram:** [View the updated class diagram](OOP_project_1_uml_ver_2.png)
+
+#### Reformatting transfer validation
+
+- **Feedback:** The validation idea was appropriate, but the original condition was too long and difficult to read. It needed to be reformatted to follow the required PEP 8 style.
+
+- **Code change:** I separated the validation into smaller checks.
+
+```python
+# Before
+if isinstance(transaction, Transaction) and self is transaction.get_remittee() and transaction.get_type() == 'Transfer' and transaction.get_status() == 'Pending':
+```
+
+```python
+# After
 if isinstance(transaction, Transaction):
     if self is transaction.get_remittee():
         if transaction.get_type() == 'Transfer':
-            if transaction.get_status == 'Pending':
-또 print 문도 너무 길 경우 pep8을 위반하기 때문에 이들도 
+            if transaction.get_status() == 'Pending':
+                self.__remittee_transfer_rollback(rollback_balance)
+```
+
+- **Concept:** PEP 8 and input validation.
+
+- **Learning:** Correct logic can still be difficult to maintain when too many checks are placed on one line. Separating the checks makes each requirement visible.
+
+- **Improvement:** The rollback conditions are easier to read, check, and debug.
+
+- **Evidence:** [`account.py`](account.py), `Account.remittee_transfer_rollback()`  
+  **Commit:** [View the relevant commit](https://github.com/sheepthegarden0325/OOP_Project_1/commit/77775ad9c37c5c7623bac93e5ade80e85ae9e926#diff-265f586811d96747cc01887c32a42cd5124e8728f656b2cf82c2b8a6fe303b9c)
+
+#### Reformatting long print statements
+
+- **Feedback:** Long print statements can exceed the required line length and make the output format difficult to read in the code.
+
+- **Code change:** I split long print statements across multiple lines and used `sep=', '` to control the output.
+
+```python
 print(
-    A, 
-    B, 
-    C, 
-    sep = ', '
-) 형태로 수정했다
+    f'Date & Time: {self.__date_time}',
+    f'Transaction status: {self.__status}',
+    f'Transaction type: {self.__type}',
+    sep=', '
+)
+```
 
-Account 와 Transaction 클래스의 관계는 Composition인가???
-그렇다
-Transaction은 Account 없이 존재할 수 없다. 즉 Transaction은 Account가 생성하며 Account 이전에 존재하지 않는다.
+- **Concept:** PEP 8 and code readability.
 
-글고 bank와 transaction에 인풋 벨리데이션을 제거했다. 이유는 이들이 circular import를 발생시키기 때문에, 또한 transaction은 모든 메서드가 account에 의해 호출되기 때문에 account에서 input validation을 마치면 다시 validation을 할 필요가 없다.
-또한 bank역시 인스턴스 생성시 constructor 에서 get_instance 메서드를 통해 해당 객체를 넘기는 방식으로 수정해서 bank class 내에 모든 import와 input validation을 제거했고 circular import 문제를 해결했다. 
+- **Learning:** Breaking a function call across lines does not change its behaviour and can make each argument easier to check.
+
+- **Improvement:** The print statements now fit the required style and their output parts are easier to identify.
+
+- **Evidence:** [`transaction.py`](transaction.py), `Transaction.print_transaction_result()` and [`account.py`](account.py), `Account.print_balance()`  
+  **Commit:** [View the relevant commit](https://github.com/sheepthegarden0325/OOP_Project_1/commit/8bf7129df252ccdd14033cf05b001d3720242cfd#diff-39f543986da3629dd772c4836a7da35d4e4324ee443079e22cf976b73e82addb)
+
+#### Reviewing the Account–Transaction relationship
+
+- **Feedback:** I asked whether the relationship between `Account` and `Transaction` should be composition. The feedback confirmed that composition was suitable because transactions are created and managed through accounts in the banking system.
+
+- **Design change:** I updated the class diagram to show that the `Account` which creates a `Transaction` is its owner. For a transfer, the remittee is shown through a separate association because it stores a reference to the same `Transaction` but does not create it.
+
+- **Concept:** Composition, association, ownership, and object lifecycle.
+
+- **Learning:** Composition describes ownership rather than simple access. The `Account` creates and keeps the `Transaction`, while another `Account` may still refer to the same transfer as its remittee.
+
+- **Improvement:** The class diagram now separates transaction ownership from the remitter and remittee roles.
+
+- **Evidence:** [View the updated class diagram](OOP_project_1_uml_ver_1.png)  
+  **Diagram commit:** [View the diagram change](https://github.com/sheepthegarden0325/OOP_Project_1/commit/8bf7129df252ccdd14033cf05b001d3720242cfd#diff-39f543986da3629dd772c4836a7da35d4e4324ee443079e22cf976b73e82addb)
+
+#### Removing duplicate validation and circular imports
+
+- **Feedback:** Input validation inside every connected class created unnecessary imports and contributed to circular-import problems.
+
+- **Code change:** I moved input validation to the public `Account` methods that receive input for deposits, withdrawals, and transfers. `Transaction` no longer imports `Account` only to repeat the same type checks. The earlier `Bank` implementation was also changed so that it did not need to import and validate every domain class.
+
+- **Concept:** Separation of responsibilities, dependency management, and circular imports.
+
+- **Learning:** Repeating validation in every layer does not always make the program safer. In the normal system flow, `Account` validates the input before creating or updating a `Transaction`.
+
+- **Improvement:** The classes have fewer dependencies, validation is handled in one clear place, and the circular-import problem was removed.
+
+- **Evidence:** [`account.py`](account.py), `Account.deposit()`, `Account.withdraw()`, and `Account.transfer()`; [`transaction.py`](transaction.py), `Transaction.__init__()`  
+  **Commit:** [View the relevant commit](https://github.com/sheepthegarden0325/OOP_Project_1/commit/77775ad9c37c5c7623bac93e5ade80e85ae9e926#diff-764655f7f8ace14ae544dd4598c070c836acf70b4b4d57d7228c1705b84df55b)  
