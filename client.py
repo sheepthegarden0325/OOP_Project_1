@@ -125,8 +125,8 @@ class Client:
         if isinstance(branch, Branch):
             self.__preferred_branch = branch
 
-    def get_preferred_branch(self) -> Branch | None:
-        return self.__perferred_branch
+    def get_preferred_branch(self) -> Branch:
+        return self.__preferred_branch
 
     # TODO: Update this method to print each account's status.
     def check_account(self):

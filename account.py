@@ -144,7 +144,7 @@ class Account:
         """
 
         if not isinstance(amount, Decimal):
-            if isinstance(description, str):
+            if not isinstance(description, str):
                 print("Wrong argument assigned")
                 return False
 
