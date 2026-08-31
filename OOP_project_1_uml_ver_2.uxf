@@ -1,0 +1,97 @@
+<diagram program="umletino" version="15.1"><zoom_level>8</zoom_level><element><id>Relation</id><coordinates><x>816</x><y>584</y><w>56</w><h>160</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..*
+Creates</panel_attributes><additional_attributes>10;10;10;180</additional_attributes></element><element><id>UMLClass</id><coordinates><x>568</x><y>728</y><w>512</w><h>280</h></coordinates><panel_attributes>Transaction
+--
+_- next_id: int = 1_
+- id: int
+- date_time: datetime
+- type: str
+- amount: Decimal
+- description: str
+- remitter_account: Account | None
+- remittee_account: Account | None
+- status: str = 'Pending'
+--
++ Transaction(type: str, amount: Decimal, description: str, remitter: Account = None, remittee: Account = None)
++ __str__(): str
++ __repr__(): str
++ status_change_to_processed(): bool
++ status_change_to_cancelled(error_code: int): bool
++ print_transaction_result(current_balance: Decimal, viewer_account: Account = None)
++ get_id(): int
++ get_remittee(): Account | None
++ get_amount(): Decimal
++ get_type(): str
++ get_status(): str
++ set_description(description: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>320</y><w>304</w><h>304</h></coordinates><panel_attributes>Client
+--
+_- next_id: int = 1_
+- id: int
+- name: str | None
+- contact_number: str | None
+- email: str | None
+- preferred_contact_method: str | None
+- accounts: Map&lt;int, Account&gt; = {}
+- preferred_branch: Branch | None = None
+--
++ Client(name: str, contact_number: str, email: str)
++ __str__(): str
++ __repr__(): str
++ set_preferred_branch(branch: Branch)
++ get_preferred_branch(): Branch | None
++ check_account()
++ access_account(account_number: int): Account
++ get_id(): int
+- add_account(account: Account)
++ add_account(account: Account)
+- remove_account(account: Account)
++ remove_account(account: Account)
++ set_name(name: str)
++ set_contact_number(contact_number: str)
++ set_email(email: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>584</x><y>40</y><w>248</w><h>184</h></coordinates><panel_attributes>Branch
+--
+_- next_number: int = 1_
+- number: int
+- name: str | None
+- suburb: str | None
+- phone_number: str | None
+- is_open: bool = False
+--
++ Branch(name: str, suburb: str, phone_number: str)
++ __str__(): str
++ __repr__(): str
++ open()
++ close()
++ set_phone_number(new_number: str)
++ get_number(): int</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>520</x><y>328</y><w>600</w><h>264</h></coordinates><panel_attributes>Account
+--
+_- next_number: int = 1_
+- number: int
+- transactions: Map&lt;int, Transaction&gt; = {}
+- current_balance: Decimal = Decimal('0.0')
+--
++ Account(client: Client)
++ __str__(): str
++ __repr__(): str
++ get_number(): int
++ get_balance(): Decimal
++ print_balance()
+- add_balance(added_amount: Decimal)
+- remove_balance(removed_amount: Decimal)
+- create_transaction(type: str, amount: Decimal, description: str, remitter: Account = None, remittee: Account = None): Transaction
++ deposit(amount: Decimal, description: str = ''): bool
++ withdraw(amount: Decimal, description: str = ''): bool
++ transfer(remittee: Account, amount: Decimal, description: str = ''): bool
+- receive(transaction: Transaction)
+- remittee_transfer_rollback(rollback_balance: Decimal)
++ remittee_transfer_rollback(transaction: Transaction, rollback_balance): Decimal</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>296</x><y>440</y><w>240</w><h>40</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=0..1
+m2=0..*
+Owns</panel_attributes><additional_attributes>10;20;280;20</additional_attributes></element><element><id>Relation</id><coordinates><x>152</x><y>128</y><w>448</w><h>208</h></coordinates><panel_attributes>lt=&lt;-
+m1=0..1
+m2=0..*
+Prefers</panel_attributes><additional_attributes>540;20;10;20;10;240</additional_attributes></element><element><id>Relation</id><coordinates><x>1072</x><y>456</y><w>232</w><h>440</h></coordinates><panel_attributes>lt=-
+m1=1
+m2=1
+Receives (for remittee)</panel_attributes><additional_attributes>10;520;140;520;140;10;60;10</additional_attributes></element></diagram>
