@@ -102,6 +102,17 @@ class Branch:
         print(f'{self.__name} is closed as of {datetime.now()}')
         return
 
+    # --------
+    # Getter
+    # --------
+
+    def get_number(self):
+        return self.__number
+
+    # ---------
+    # Setter
+    # ---------
+
     def set_phone_number(self, new_number: str):
         if isinstance(new_number, str):
             old_number = self.__phone_number
@@ -112,5 +123,9 @@ class Branch:
                 f'as of {datetime.now()}.'
             )
 
-    def get_number(self):
-        return self.__number
+    # ----------
+    # Properties
+    # ----------
+
+    number = property(get_number)
+    phone_number = property(fset=set_phone_number)

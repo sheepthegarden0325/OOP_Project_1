@@ -177,9 +177,7 @@ class Transaction:
         ----------
         error_code : int
             The reason for cancelling the transaction:
-            0 indicates insufficient balance.
-            2 indicates a banking system calculation error.
-            3 indicates that the amount is zero or negative.
+            0 indicates a banking system calculation error.
 
         Returns
         -------
@@ -195,19 +193,7 @@ class Transaction:
                 print(
                     f"Date & Time: {self.__date_time}",
                     f"Transaction status: {self.__status}",
-                    f"Not enough balance."
-                )
-            elif error_code == 2:
-                print(
-                    f"Date & Time: {self.__date_time}",
-                    f"Transaction status: {self.__status}",
                     "Banking system calculation error."
-                )
-            elif error_code == 3:
-                print(
-                    f"Date & Time: {self.__date_time}",
-                    f"Transaction status: {self.__status}",
-                    "Amount cannot be 0 or negative."
                 )
             return True
 
@@ -276,6 +262,10 @@ class Transaction:
                     sep=", "
                 )
 
+    # ------------
+    # Getters
+    # ------------
+
     def get_id(self):
         return self.__id
 
@@ -291,6 +281,10 @@ class Transaction:
     def get_status(self):
         return self.__status
 
+    # ---------
+    # Setter
+    # ---------
+
     def set_description(self, description: str):
         """Update the transaction description.
 
@@ -301,3 +295,14 @@ class Transaction:
         """
         if isinstance(description, str):
             self.__description = description
+
+    # ----------
+    # Properties
+    # ----------
+
+    id = property(get_id)
+    remittee = property(get_remittee)
+    amount = property(get_amount)
+    type = property(get_type)
+    status = property(get_status)
+    description = property(fset=set_description)

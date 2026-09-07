@@ -57,15 +57,15 @@ print(repr(branch_2))
 
 print(
     f'Client IDs are different: '
-    f'{client_1.get_id() != client_2.get_id()}'
+    f'{client_1.id != client_2.id}'
 )
 print(
     f'Account numbers are different: '
-    f'{client_1_account_1.get_number() != client_1_account_2.get_number()}'
+    f'{client_1_account_1.number != client_1_account_2.number}'
 )
 print(
     f'Branch numbers are different: '
-    f'{branch_1.get_number() != branch_2.get_number()}'
+    f'{branch_1.number != branch_2.number}'
 )
 
 
@@ -75,7 +75,7 @@ client_1.check_account()
 client_2.check_account()
 
 accessed_account = client_1.access_account(
-    client_1_account_1.get_number()
+    client_1_account_1.number
 )
 
 print(
@@ -111,30 +111,30 @@ print(client_1)
 print('\n=== Preferred Branch tests ===')
 
 print(
-    f'Initial preferred branch is None: '
-    f'{client_1.get_preferred_branch() is None}'
+    f'Initial preferred preferred_branch is None: '
+    f'{client_1.preferred_branch is None}'
 )
 
-client_1.set_preferred_branch(branch_1)
+client_1.preferred_branch = branch_1
 print(
-    f'Preferred branch set correctly: '
-    f'{client_1.get_preferred_branch() is branch_1}'
-)
-print(client_1)
-
-# Setting another branch should change the preferred branch.
-client_1.set_preferred_branch(branch_2)
-print(
-    f'Preferred branch changed correctly: '
-    f'{client_1.get_preferred_branch() is branch_2}'
+    f'Preferred preferred_branch set correctly: '
+    f'{client_1.preferred_branch is branch_1}'
 )
 print(client_1)
 
-# An invalid object should not replace the preferred branch.
-client_1.set_preferred_branch('Not a branch')
+# Setting another preferred_branch should change the preferred preferred_branch.
+client_1.preferred_branch = branch_2
 print(
-    f'Invalid branch was rejected: '
-    f'{client_1.get_preferred_branch() is branch_2}'
+    f'Preferred preferred_branch changed correctly: '
+    f'{client_1.preferred_branch is branch_2}'
+)
+print(client_1)
+
+# An invalid object should not replace the preferred preferred_branch.
+client_1.preferred_branch = 'Not a preferred_branch'
+print(
+    f'Invalid preferred_branch was rejected: '
+    f'{client_1.preferred_branch is branch_2}'
 )
 print(client_1)
 
@@ -299,7 +299,7 @@ print('Expected final remittee balance: 20.00')
 print('\n=== Rollback validation test ===')
 
 # An unrelated value must not be able to change the account balance.
-balance_before_rollback = client_2_account_1.get_balance()
+balance_before_rollback = client_2_account_1.balance
 
 client_2_account_1.remittee_transfer_rollback(
     'Not a transaction',
@@ -308,7 +308,7 @@ client_2_account_1.remittee_transfer_rollback(
 
 print(
     f'Invalid rollback was rejected: '
-    f'{client_2_account_1.get_balance() == balance_before_rollback}'
+    f'{client_2_account_1.balance == balance_before_rollback}'
 )
 
 
@@ -316,17 +316,17 @@ print('\n=== Client detail tests ===')
 
 print(client_1)
 
-client_1.set_name('John Smith')
-client_1.set_contact_number('0499-999-999')
-client_1.set_email('john.smith@email.com')
+client_1.name = 'John Smith'
+client_1.contact_number = '0499-999-999'
+client_1.email = 'john.smith@email.com'
 
 print(client_1)
 print(repr(client_1))
 
 # Invalid values should not replace valid client details.
-client_1.set_name(123)
-client_1.set_contact_number(123)
-client_1.set_email(123)
+client_1.name = 123
+client_1.contact_number = 123
+client_1.email = 123
 
 print(client_1)
 print('Expected name: John Smith')
@@ -343,12 +343,12 @@ branch_1.open()
 print(branch_1)
 print('Expected status: Open')
 
-branch_1.set_phone_number('000000000')
+branch_1.phone_number = '000000000'
 print(branch_1)
 print('Expected phone number: 000000000')
 
 # An invalid phone number should not replace the valid number.
-branch_1.set_phone_number(123)
+branch_1.phone_number = 123
 print(branch_1)
 print('Expected phone number after invalid attempt: 000000000')
 

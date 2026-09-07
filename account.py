@@ -67,11 +67,22 @@ class Account:
             f'transaction_ids={list(self.__transactions)!r})'
         )
 
+    # ------------
+    # Getters
+    # ------------
+
     def get_number(self) -> int:
         return self.__number
 
     def get_balance(self) -> Decimal:
         return self.__current_balance
+
+    # ----------
+    # Properties
+    # ----------
+
+    number = property(get_number)
+    balance = property(get_balance)
 
     def print_balance(self):
         """Print the account number and current balance."""
@@ -144,9 +155,17 @@ class Account:
         """
 
         if not isinstance(amount, Decimal):
-            if not isinstance(description, str):
-                print("Wrong argument assigned")
-                return False
+            return False
+
+        if not isinstance(description, str):
+            print("Wrong argument assigned")
+            return False
+
+        if amount <= Decimal('0.0'):
+            print("Amount cannot be 0 or negative.")
+            return False
+
+        self.__add_balance(amount)
 
         transaction = self.__create_transaction(
             'Deposit',
@@ -154,13 +173,8 @@ class Account:
             description
         )
 
-        self.__transactions[transaction.get_id()] = transaction
+        self.__transactions[transaction.id] = transaction
 
-        if amount <= Decimal('0.0'):
-            transaction.status_change_to_cancelled(3)
-            return False
-
-        self.__add_balance(amount)
         transaction.status_change_to_processed()
         transaction.print_transaction_result(self.__current_balance)
         return True
@@ -180,30 +194,34 @@ class Account:
         bool
             True if the withdrawal was processed; otherwise, False.
         """
-        if not (isinstance(amount, Decimal)
-                and isinstance(description, str)):
+        if not isinstance(amount, Decimal):
             print("Wrong argument assigned")
             return False
 
-        transaction = self.__create_transaction(
-            "Withdrawal",
-            amount,
-            description
-        )
-        self.__transactions[transaction.get_id()] = transaction
+        if not isinstance(description, str):
+            print("Wrong argument assigned")
+            return False
 
         if amount <= Decimal('0.0'):
-            transaction.status_change_to_cancelled(3)
+            print("Amount cannot be 0 or negative.")
             return False
 
         if self.__current_balance >= amount:
             self.__remove_balance(amount)
+
+            transaction = self.__create_transaction(
+                "Withdrawal",
+                amount,
+                description
+            )
+            self.__transactions[transaction.id] = transaction
+
             transaction.status_change_to_processed()
             transaction.print_transaction_result(self.__current_balance)
             return True
 
         else:
-            transaction.status_change_to_cancelled(0)
+            print("Not enough balance.")
             return False
 
     def transfer(
@@ -239,42 +257,43 @@ class Account:
             print("Wrong argument assigned in \"remittee\"")
             return False
 
-        transaction = self.__create_transaction(
-            "Transfer",
-            amount,
-            description,
-            self,
-            remittee
-        )
-
-        self.__transactions[transaction.get_id()] = transaction
-
         if amount <= Decimal('0.0'):
-            transaction.status_change_to_cancelled(3)
+            print("Amount cannot be 0 or negative.")
             return False
 
         if self.__current_balance >= amount:
-            receiver_balance = remittee.get_balance()
+
+            transaction = self.__create_transaction(
+                "Transfer",
+                amount,
+                description,
+                self,
+                remittee
+            )
+
+            self.__transactions[transaction.id] = transaction
+
+            remittee_balance = remittee.balance
             remittee.__receive(transaction)
 
-            if remittee.get_balance() != receiver_balance + amount:
+            if remittee.balance != remittee_balance + amount:
                 remittee.remittee_transfer_rollback(
-                    transaction, receiver_balance)
+                    transaction, remittee_balance)
 
-                transaction.status_change_to_cancelled(2)
+                transaction.status_change_to_cancelled(0)
                 return False
 
             self.__remove_balance(amount)
             transaction.status_change_to_processed()
             transaction.print_transaction_result(self.__current_balance, self)
             transaction.print_transaction_result(
-                remittee.get_balance(),
+                remittee.balance,
                 remittee
             )
             return True
 
         else:
-            transaction.status_change_to_cancelled(0)
+            print("Not enough balance.")
             return False
 
     def __receive(self, transaction: Transaction):
@@ -285,8 +304,8 @@ class Account:
         transaction : Transaction
             The transfer transaction being received.
         """
-        self.__add_balance(transaction.get_amount())
-        self.__transactions[transaction.get_id()] = transaction
+        self.__add_balance(transaction.amount)
+        self.__transactions[transaction.id] = transaction
 
     def __remittee_transfer_rollback(self, rollback_balance):
         """Restore the balance recorded before a transfer."""
@@ -308,7 +327,7 @@ class Account:
         """
         # Only the pending transfer's remittee can restore its balance.
         if isinstance(transaction, Transaction):
-            if self is transaction.get_remittee():
-                if transaction.get_type() == 'Transfer':
-                    if transaction.get_status() == 'Pending':
+            if self is transaction.remittee:
+                if transaction.type == 'Transfer':
+                    if transaction.status == 'Pending':
                         self.__remittee_transfer_rollback(rollback_balance)

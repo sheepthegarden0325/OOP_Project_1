@@ -121,40 +121,23 @@ class Client:
             f'account_numbers={list(self.__accounts)!r})'
         )
 
-    def set_preferred_branch(self, branch: Branch):
-        if isinstance(branch, Branch):
-            self.__preferred_branch = branch
+    # ----------
+    # Getters
+    # ----------
 
     def get_preferred_branch(self) -> Branch:
         return self.__preferred_branch
 
-    # TODO: Update this method to print each account's status.
-    def check_account(self):
-        print(self.__accounts)
-
-    # this method returns the exact account instance
-    def access_account(self, account_number: int):
-        return self.__accounts[account_number]
-
     def get_id(self):
         return self.__id
 
-    def __add_account(self, account):
-        self.__accounts[account.get_number()] = account
+    # ----------
+    # Setters
+    # ----------
 
-    def add_account(self, account: Account):
-        if isinstance(account, Account):  # input validation
-            # To prevent adding a redundant account
-            if account.get_number() not in self.__accounts:
-                self.__add_account(account)
-
-    def __remove_account(self, account: Account):
-        del self.__accounts[account.get_number()]
-
-    def remove_account(self, account: Account):
-        if isinstance(account, Account):
-            if account.get_number() in self.__accounts:
-                self.__remove_account(account)
+    def set_preferred_branch(self, branch: Branch):
+        if isinstance(branch, Branch):
+            self.__preferred_branch = branch
 
     def set_name(self, name):
         if not isinstance(name, str):
@@ -173,3 +156,36 @@ class Client:
             print("Worng email argument")
         else:
             self.__email = email
+
+    # -----------
+    # Properties
+    # -----------
+
+    preferred_branch = property(get_preferred_branch, set_preferred_branch)
+    id = property(get_id)
+    name = property(fset=set_name)
+    contact_number = property(fset=set_contact_number)
+    email = property(fset=set_email)
+
+    # TODO: Update this method to print each account's status.
+    def check_account(self):
+        print(self.__accounts)
+
+    def access_account(self, account_number: int):
+        return self.__accounts[account_number]
+
+    def __add_account(self, account):
+        self.__accounts[account.number] = account
+
+    def add_account(self, account: Account):
+        if isinstance(account, Account):
+            if account.number not in self.__accounts:
+                self.__add_account(account)
+
+    def __remove_account(self, account: Account):
+        del self.__accounts[account.number]
+
+    def remove_account(self, account: Account):
+        if isinstance(account, Account):
+            if account.number in self.__accounts:
+                self.__remove_account(account)
